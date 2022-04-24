@@ -21,7 +21,7 @@ public:
 	//Para setar os atributos 
 	void setTexture(int texID);
 	void setShader(Shader* shader) { this->shader = shader; shader->Use(); }
-	void setPosition(glm::vec3 pos) { this->pos = pos; } //dica: fazer setX e setY individualmente
+	void setPosition(glm::vec3 pos) { this->translation = pos; } //dica: fazer setX e setY individualmente
 	void setDimension(glm::vec3 scale) { this->scale = scale; }
 	void setAngle(float angle) { this->angle = angle; } //para 3D precisa angulo por eixo ou quaternion
 	
@@ -36,7 +36,9 @@ public:
 	float getPosZInicial();
 	
 	float getPosX();
+	float getPosY();
 	void setPosX(float x);
+	void setPosY(float y);
 
 	void setPosXInicial(float x);
 	void setPosYInicial(float y);
@@ -48,18 +50,19 @@ public:
 	//Uma versão hardcoded do glfwGetTime(), com ele podemos reiniciar seu valor para que não fique adicionando infinitamente
 	float tempo = 0.000f;
 protected:
+
 	//Atributos gerais
 
-	GLuint VAO; //ID do buffer de geometria
+	GLuint VAO; 
 
-	glm::mat4 transform; //matriz de transformação
+	glm::mat4 model; //matriz de transformação
 
 	unsigned int texID; //identificador da textura
 
 	Shader* shader; //ponteiro para o objeto de shader, para fazer a interface
 
 	//Atributos de controle da posição, orientação e dimensões do sprite
-	glm::vec3 pos, scale;
+	glm::vec3 translation, scale;
 	float angle;
 
 	//Atributos para controle da animação

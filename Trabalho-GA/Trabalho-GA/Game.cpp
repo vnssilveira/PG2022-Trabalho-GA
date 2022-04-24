@@ -1,20 +1,22 @@
 #include "Game.h"
 
-static GLuint width = 1400, height = 800;
+static const float screenWidth = 1400.0f, screenHeight = 800.0f;
+static const float maxScreenWidth = 10;
+static float frameWidth = 0.5;
+static GLuint width = screenWidth, height = screenHeight;
 
 static bool keys[1024];
-static bool resized;
+static bool screenSizeChanged;
+bool isJumping = false;
+bool raise = true;
 
-const int camada3		  = 0;
-const int camada2		  = 1;
-const int camada1		  = 2;
-const int chao			  = 3;
-const int personagem	  = 4;
-//const int personagemVolta = 5;
-const int personagemPula = 6;
+const int backgroud	= 0;
+const int character	= 1;
+const int plant = 2;
 
-enum Movimento{esquerda, parado, direita, pulando};
-static Movimento mov = parado;
+enum Movement{LEFT, STOP, RIGHT, JUMPING};
+static Movement movement = STOP;
+const float characterSpeed = 0.35f;
 
 void Game::start()
 {
@@ -23,11 +25,10 @@ void Game::start()
 
 	while (!glfwWindowShouldClose(window))
 	{
-
 		glfwPollEvents();
 
-		update();
-		render();
+		updateSprites();
+		renderSprites();
 
 		glfwSwapBuffers(window);
 	}
@@ -51,75 +52,131 @@ void Game::initialize()
 
 	shader = new Shader(((string) "../shaders/sprite.vs").c_str(), ((string)"../shaders/sprite.fs").c_str());
 	
-	resized = true; 
+	screenSizeChanged = true;
 
 	glEnable(GL_DEPTH);
 }
 
 void Game::initializeScene()
 {
-	//Definindo posições de cada Sprites.
-	camadas[camada3].adicionarObjeto(402.0f, 340.0f, 0.0, 800.0f, 550.0f, 0.0f, shader);
-	camadas[camada3].adicionarObjeto(1200.0f, 340.0f, 0.0, 800.0f, 550.0f, 0.0f, shader);
-	camadas[camada3].setDesloc(-35.0f);//Direção de deslocamento.
+	unsigned int texID = loadTexture("../textures/cenario.jpg");
 
-	camadas[camada2].adicionarObjeto(402.0f, 340.0f, 0.0, 800.0f, 550.0f, 0.0f, shader);
-	camadas[camada2].adicionarObjeto(1200.0f, 340.0f, 0.0, 800.0f, 550.0f, 0.0f, shader);
-	camadas[camada2].setDesloc(-50.0f);
+	for (int aux = 0; aux < maxScreenWidth; aux++) {
+		layers[backgroud].adicionarObjeto(screenWidth * frameWidth, screenHeight / 2, 0.0, screenWidth, screenHeight, 0.0f, shader);
+		layers[backgroud].objects[aux]->setTexture(texID);
 
-	camadas[camada1].adicionarObjeto(402.0f, 340.0f, 0.0, 800.0f, 550.0f, 0.0f, shader);
-	camadas[camada1].adicionarObjeto(1200.0f, 340.0f, 0.0, 800.0f, 550.0f, 0.0f, shader);
-	camadas[camada1].setDesloc(-65.0f);
+		frameWidth += 1.0;
+	}
+	layers[backgroud].setDesloc(-20.0f);
 
-	camadas[chao].adicionarObjeto(405.0f, 36.0f, 0.0, 800.0f, 95.0f, 1.0f, shader);
-	camadas[chao].adicionarObjeto(1200.0f, 36.0f, 0.0, 800.0f, 95.0f, 1.0f, shader);
-	camadas[chao].setDesloc(-65.0f);
 
-	camadas[personagem].adicionarObjeto(50.0f, 140.0f, 0.0f, 60.0f, 120.0f, 0.0f, shader);
-	camadas[personagem].setDesloc(0.1f);
-
-	//camadas[personagemVolta].adicionarObjeto(50.0f, 140.0f, 0.0f, 60.0f, 120.0f, 0.0f, shader);
-	//camadas[personagemVolta].setDesloc(0.1f);
-
-	//Adicionando Textura para cada Sprites
-	unsigned int texID = loadTexture("../textures/cenario1.jpg");
-	camadas[camada3].objects[0]->setTexture(texID);
-	camadas[camada3].objects[1]->setTexture(texID);
-
-	texID = loadTexture("../textures/cenario1.jpg");
-	camadas[camada2].objects[0]->setTexture(texID);
-	camadas[camada2].objects[1]->setTexture(texID);
-
-	texID = loadTexture("../textures/cenario1.jpg");
-	camadas[camada1].objects[0]->setTexture(texID);
-	camadas[camada1].objects[1]->setTexture(texID);
-
-	texID = loadTexture("../textures/chao1.png");
-	camadas[chao].objects[0]->setTexture(texID);
-	camadas[chao].objects[1]->setTexture(texID);
-
+	layers[character].adicionarObjeto(50.0f, 240.0f, 0.0f, 100.0f, 160.0f, 0.0f, shader);
+	layers[character].setDesloc(0.2f);
 	texID = loadTexture("../textures/personagem.png");
-	camadas[personagem].objects[0]->setTexture(texID);
+	layers[character].objects[0]->setTexture(texID);
+	layers[character].objects[0]->tempo = 100.0f;
 
-	texID = loadTexture("../textures/personagemPula.png");
-	camadas[personagemPula].objects[0]->setTexture(texID);
+	frameWidth = 0.5;
+	for (int aux = 0; aux < maxScreenWidth; aux++) {
+		texID = loadTexture("../textures/plant.gif");
+		layers[plant].adicionarObjeto(screenWidth * frameWidth, 240.0f, 0.0f, 100.0f, 160.0f, 0.0f, shader);
+		layers[plant].objects[aux]->setTexture(texID);
+
+		frameWidth += 1.0;
+	}
+	layers[plant].setDesloc(-20.0f);
+
+	//texID = loadTexture("../textures/personagemPula.png");
+	//camadas[personagemPula].objects[0]->setTexture(texID);
 
 	//texID = loadTexture("../textures/personagemVolta.png");
 	//camadas[personagemVolta].objects[0]->setTexture(texID);
 
-	//Definindo a janela do mundo (ortho2D)
-	ortho2D[0] = 0.0f; //xMin
-	ortho2D[1] = 800.0f; //xMax
-	ortho2D[2] = 0.0f; //yMin
-	ortho2D[3] = 600.0f; //yMax
+	
 
-	//Habilita transparência
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
 }
 
-void Game::key_callback(GLFWwindow * window, int key, int scancode, int action, int mode)
+void Game::updateSprites()
+{
+	if (keys[GLFW_KEY_ESCAPE])
+		glfwSetWindowShouldClose(window, GL_TRUE);
+
+	switch (movement)
+	{
+	case LEFT:
+		if (layers[character].objects[0]->getPosX() > 50)
+		layers[character].objects[0]->setPosX(layers[character].objects[0]->getPosX() - characterSpeed);
+		break;
+	case RIGHT:
+		if(layers[character].objects[0]->getPosX() < screenWidth - 50)
+		layers[character].objects[0]->setPosX(layers[character].objects[0]->getPosX() + characterSpeed);
+		break;
+	case JUMPING:
+		if (!isJumping)
+			isJumping = true;
+	default:
+		break;
+	}
+
+	layers[character].objects[0]->setPosition(glm::vec3(layers[character].objects[0]->getPosX(), layers[character].objects[0]->getPosY(), layers[character].objects[0]->getPosZInicial()));
+	
+	//Andar cenário
+	for (int aux = 0; aux < maxScreenWidth; aux++) {
+		
+		layers[backgroud].objects[aux]->setPosition(glm::vec3(layers[backgroud].objects[aux]->getPosXInicial() + layers[backgroud].objects[aux]->tempo * layers[backgroud].getDesloc(), layers[backgroud].objects[aux]->getPosYInicial(), layers[backgroud].objects[aux]->getPosZInicial()));
+		layers[backgroud].objects[aux]->tempo += 0.01f;
+	}
+
+	//Andar inimigo
+	for (int aux = 0; aux < maxScreenWidth; aux++) {
+
+		layers[plant].objects[aux]->setPosition(glm::vec3(layers[plant].objects[aux]->getPosXInicial() + layers[plant].objects[aux]->tempo * layers[plant].getDesloc(), layers[plant].objects[aux]->getPosYInicial(), layers[plant].objects[aux]->getPosZInicial()));
+		layers[plant].objects[aux]->tempo += 0.01f;
+	}
+
+	layers[character].objects[0]->tempo += 0.01f;
+
+	//Pular
+	if (isJumping && layers[character].objects[0]->tempo >= 5.0) {
+
+		if (raise) {
+			layers[character].objects[0]->setPosY(layers[character].objects[0]->getPosY() + 0.5f);
+		}
+		else {
+			layers[character].objects[0]->setPosY(layers[character].objects[0]->getPosY() - 0.3f);
+		}
+
+		if(layers[character].objects[0]->getPosY() > 450) {
+			raise = false;
+		} else if (layers[character].objects[0]->getPosY() < 240) {
+			isJumping = false;
+			raise = true;
+			layers[character].objects[0]->tempo = 0.0f;
+		} 
+	}
+
+	if(layers[character].objects[0]->getPosY() == )
+	
+}
+
+void Game::renderSprites()
+{
+	glClearColor(0.89f, 0.89f, 0.87f, 1.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	if (screenSizeChanged) {
+		setupCamera2D();
+		screenSizeChanged = false;
+	}
+
+	for (int aux = 0; aux < 3; aux++) {
+		layers[aux].update();
+	}
+}
+
+void Game::key_callback(GLFWwindow* window, int key, int scancode, int action, int mode)
 {
 	if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS)
 		glfwSetWindowShouldClose(window, GL_TRUE);
@@ -132,114 +189,21 @@ void Game::key_callback(GLFWwindow * window, int key, int scancode, int action, 
 	}
 	if (glfwGetKey(window, GLFW_KEY_D) == GLFW_PRESS)
 	{
-		mov = direita;
+		movement = RIGHT;
 	}
 	else if (glfwGetKey(window, GLFW_KEY_A) == GLFW_PRESS)
 	{
-		mov = esquerda;
+		movement = LEFT;
 	}
-	else if (glfwGetKey(window, GLFW_KEY_SPACE) == GLFW_PRESS)
+	else if (glfwGetKey(window, GLFW_KEY_W) == GLFW_PRESS)
 	{
-		mov = pulando;
+		movement = JUMPING;
 	}
 	else
 	{
-		mov = parado;
+		movement = STOP;
 	}
 }
-
-void Game::resize(GLFWwindow * window, int w, int h)
-{
-	width = w;
-	height = h;
-	resized = true;
-
-	// Define the viewport dimensions
-	glViewport(0, 0, width, height);
-}
-
-void Game::update()
-{
-	if (keys[GLFW_KEY_ESCAPE])
-		glfwSetWindowShouldClose(window, GL_TRUE);
-	//AQUI APLICAREMOS TRANSFORMAÇÕES NOS SPRITES//
-
-	//Controle de movimentação do personagem
-	switch (mov)
-	{
-	case esquerda:
-		camadas[personagem].objects[0]->setPosX(camadas[personagem].objects[0]->getPosX() - 0.3f);
-		break;
-	case direita:
-		camadas[personagem].objects[0]->setPosX(camadas[personagem].objects[0]->getPosX() + 0.3f);
-		break;
-	case pulando:
-		//camadas[personagem].objects[0]->setPosX(camadas[personagem].objects[0]->getPosX() + 0.3f);
-	default:
-		break;
-	}
-	camadas[personagem].objects[0]->setPosition(glm::vec3(camadas[personagem].objects[0]->getPosX(), camadas[personagem].objects[0]->getPosYInicial(), camadas[personagem].objects[0]->getPosZInicial()));
-
-	for (int i = 0; i < 4; i++)
-	{
-		//Movimentação constante das camadas do parallax
-		camadas[i].objects[0]->setPosition(glm::vec3(camadas[i].objects[0]->getPosXInicial() + camadas[i].objects[0]->tempo * camadas[i].getDesloc(), camadas[i].objects[0]->getPosYInicial(), camadas[i].objects[0]->getPosZInicial()));
-		camadas[i].objects[1]->setPosition(glm::vec3(camadas[i].objects[1]->getPosXInicial() + camadas[i].objects[1]->tempo * camadas[i].getDesloc(), camadas[i].objects[1]->getPosYInicial(), camadas[i].objects[1]->getPosZInicial()));
-		//Adição na variação de tempo dentro da variável que todos objetos possuem
-		camadas[i].objects[0]->tempo += 0.001f;
-		camadas[i].objects[1]->tempo += 0.001f;
-
-		//Atualização da posição dos sprites que formam o parallax
-		if (camadas[i].objects[0]->getPosX() <= -400.0f)
-		{
-
-			camadas[i].objects[0]->setPosXInicial(1190.0f);
-			camadas[i].objects[0]->tempo = 0;
-
-		}
-		if (camadas[i].objects[1]->getPosX() <= -400.0f)
-		{
-			camadas[i].objects[1]->tempo = 0;
-			camadas[i].objects[1]->setPosXInicial(1190.0f);
-		}
-	}
-}
-
-void Game::render()
-{
-	// Clear the colorbuffer
-	glClearColor(0.89f, 0.89f, 0.87f, 1.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
-
-	if (resized) //se houve redimensionamento na janela, redefine a projection matrix
-	{
-		setupCamera2D();
-		resized = false;
-	}
-
-	//atualiza e desenha os Sprites
-
-	for (int i = 0; i < 6; i++)
-	{
-		camadas[i].updateCamada();
-	}
-	
-}
-
-
-void Game::setupCamera2D() //TO DO: parametrizar aqui
-{
-	float zNear = -1.0, zFar = 1.0; //estão fixos porque não precisamos mudar
-
-	projection = glm::ortho(ortho2D[0], ortho2D[1], ortho2D[2], ortho2D[3], zNear, zFar);
-
-	//Obtendo o identificador da matriz de projeção para enviar para o shader
-	GLint projLoc = glGetUniformLocation(shader->ID, "projection");
-	//Enviando a matriz de projeção para o shader
-	glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
-}
-
 
 unsigned int Game::loadTexture(string filename)
 {
@@ -282,6 +246,21 @@ unsigned int Game::loadTexture(string filename)
 	glActiveTexture(GL_TEXTURE0);
 
 	return texture;
+}
+
+void Game::setupCamera2D()
+{
+	projection = glm::ortho(0.0f, screenWidth, 0.0f, screenHeight, -1.0f, 1.0f);
+	GLint projLoc = glGetUniformLocation(shader->ID, "projection");
+	glUniformMatrix4fv(projLoc, 1, GL_FALSE, glm::value_ptr(projection));
+}
+
+void Game::resize(GLFWwindow* window, int w, int h)
+{
+	width = w;
+	height = h;
+	screenSizeChanged = true;
+	glViewport(0, 0, width, height);
 }
 
 

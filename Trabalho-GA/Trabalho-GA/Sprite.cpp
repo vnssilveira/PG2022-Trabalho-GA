@@ -7,20 +7,21 @@ Sprite::Sprite()
 
 void Sprite::initialize()
 {
+	unsigned int VBO, EBO;
 
 	float vertices[] = {
 		// positions          // colors           // texture coords
-		0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0, // top right
-		0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, // bottom right
-		-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, // bottom left
-		-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0  // top left 
+		0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0, 
+		0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, 
+		-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, 
+		-0.5f,  0.5f, 0.0f,   1.0f, 1.0f, 0.0f,   0.0f, 1.0  
 	};
 	
 	unsigned int indices[] = {
-		0, 1, 3, // first triangle
-		1, 2, 3  // second triangle
+		0, 1, 3, 
+		1, 2, 3
 	};
-	unsigned int VBO, EBO;
+
 	glGenVertexArrays(1, &VAO);
 	glGenBuffers(1, &VBO);
 	glGenBuffers(1, &EBO);
@@ -33,23 +34,22 @@ void Sprite::initialize()
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indices), indices, GL_STATIC_DRAW);
 
-	// position attribute
 	glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)0);
 	glEnableVertexAttribArray(0);
-	// color attribute
+
 	glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(3 * sizeof(float)));
 	glEnableVertexAttribArray(1);
-	// texture coord attribute
+
 	glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, 8 * sizeof(float), (void*)(6 * sizeof(float)));
 	glEnableVertexAttribArray(2);
+	glBindVertexArray(0);
 
-	transform = glm::mat4(1); //matriz identidade
+	model = glm::mat4(1);
 	texID = -1; 
 	shader = NULL; 
-	pos = glm::vec3(0.0f, 0.0f, 0.0f);
+	translation = glm::vec3(0.0f, 0.0f, 0.0f);
 	scale = glm::vec3(1.0f, 1.0f, 1.0f);
 	angle = 0.0f;
-	
 }
 
 void Sprite::setTexture(int texID)
@@ -59,25 +59,25 @@ void Sprite::setTexture(int texID)
 
 glm::vec3 Sprite::getPosition()
 {
-	return pos;
+	return translation;
 }
 
 void Sprite::setRotation(float angle, glm::vec3 axis, bool reset)
 {
-	if (reset) transform = glm::mat4(1);
-	transform = glm::rotate(transform, angle, axis);
+	if (reset) model = glm::mat4(1);
+	model = glm::rotate(model, angle, axis);
 }
 
 void Sprite::setTranslation(glm::vec3 displacements, bool reset)
 {
-	if (reset) transform = glm::mat4(1);
-	transform = glm::translate(transform, displacements);
+	if (reset) model = glm::mat4(1);
+	model = glm::translate(model, displacements);
 }
 
 void Sprite::setScale(glm::vec3 scaleFactors, bool reset)
 {
-	if (reset) transform = glm::mat4(1);
-	transform = glm::scale(transform, scaleFactors);
+	if (reset) model = glm::mat4(1);
+	model = glm::scale(model, scaleFactors);
 	scale = scaleFactors;
 }
 
@@ -98,12 +98,22 @@ float Sprite::getPosZInicial()
 
 float Sprite::getPosX()
 {
-	return pos[0];
+	return translation[0];
+}
+
+float Sprite::getPosY()
+{
+	return translation[1];
 }
 
 void Sprite::setPosX(float x)
 {
-	pos[0] = x;
+	translation[0] = x;
+}
+
+void Sprite::setPosY(float y)
+{
+	translation[1] = y;
 }
 
 void Sprite::setPosXInicial(float x)
@@ -124,7 +134,7 @@ void Sprite::setPosZInicial(float z)
 void Sprite::draw()
 {
 	glBindTexture(GL_TEXTURE_2D, texID);
-	glUniform1i(glGetUniformLocation(shader->ID, "ourTexture1"), 0);
+	glUniform1i(glGetUniformLocation(shader->ID, "tex_buffer"), 0);
 
 	glBindVertexArray(VAO);
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
@@ -133,11 +143,10 @@ void Sprite::draw()
 
 void Sprite::update()
 {
-	//A matriz de transformação
-	setTranslation(pos);
+	setTranslation(translation);
 	setRotation(angle, glm::vec3(0.0f, 0.0f, 1.0f), false);
 	setScale(scale, false);
 
 	GLint transformLoc = glGetUniformLocation(shader->ID, "model");
-	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(transform));
+	glUniformMatrix4fv(transformLoc, 1, GL_FALSE, glm::value_ptr(model));
 }

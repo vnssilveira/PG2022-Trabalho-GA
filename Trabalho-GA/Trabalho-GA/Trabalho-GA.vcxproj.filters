@@ -15,7 +15,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Camadas.cpp">
+    <ClCompile Include="Layer.cpp">
       <Filter>Arquivos de Origem</Filter>
     </ClCompile>
     <ClCompile Include="glad.c">
@@ -38,9 +38,11 @@
     <None Include="src.filters" />
     <None Include="src.user" />
     <None Include="src.vcxproj" />
+    <None Include="..\shaders\sprite.fs" />
+    <None Include="..\shaders\sprite.vs" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\includes\Camadas.h">
+    <ClInclude Include="..\includes\Layer.h">
       <Filter>Arquivos de Cabeçalho</Filter>
     </ClInclude>
     <ClInclude Include="..\includes\Game.h">
