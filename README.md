@@ -2,6 +2,8 @@
 
 ![readme](https://user-images.githubusercontent.com/52571672/165000927-b379c539-cc62-4262-a7e4-055a814d0374.jpg)
 
+
+
 ## 👾 Requisitos:
 - GIT
 - IDE para C++
@@ -23,8 +25,22 @@ git clone https://github.com/vnssilveira/PG2022-Trabalho-GA
 
 # Notas técnicas sobre o projeto:
 
-## 👾 Como o projeto está estruturado?
+👾 **Estrutura geral do código (classes e/ou funções):**
 
-- Camadas:
+👾 **Estrutura dos buffers e shaders:**
 
-- Game:
+👾 **Gerenciamento dos sprites:**
+
+👾 **Como é feito o controle do personagem (teclado e/ou mouse):**
+
+![3169603-200](https://user-images.githubusercontent.com/52571672/165001381-fd10739f-a855-4a54-a746-f44e9b24b4a9.png)
+
+Tecla W: O personagem pula; <br>
+Tecla A: O personagem anda para trás; <br>
+Tecla D: O personagem anda para frente.
+
+👾 **Como são verificadas as colisões:**
+
+👾 **Como é gerenciada a animação dos sprites:**
+
+👾 **Como são gerenciadas as camadas para o efeito de Parallax:**
