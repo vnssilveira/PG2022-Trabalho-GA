@@ -45,5 +45,8 @@ Tecla W: O personagem pula; <br>
 Tecla A: O personagem anda para trás; <br>
 Tecla D: O personagem anda para frente.
 
+👾 **Como são verificadas as colisões:**
+As colisões são verificadas através da comparação da posição do personagem e da bomba (o inimigo).
+
 👾 **Como é gerenciada a animação dos sprites:**
 Criamos uma lista com os sprites do persogem e da bomba e setamos uma flag para cada ação do personagem. Quando determinada ação é atribuida ao estado do personagem, o sprite coerente a está ação é selecionado.
