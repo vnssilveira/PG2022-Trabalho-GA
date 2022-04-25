@@ -2,7 +2,8 @@
 
 ![readme](https://user-images.githubusercontent.com/52571672/165000927-b379c539-cc62-4262-a7e4-055a814d0374.jpg)
 
-
+## 👾 Grupo:
+Mayara Damiani e Vanessa Silveira
 
 ## 👾 Requisitos:
 - GIT
