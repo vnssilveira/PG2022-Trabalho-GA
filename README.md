@@ -26,10 +26,16 @@ git clone https://github.com/vnssilveira/PG2022-Trabalho-GA
 # Notas técnicas sobre o projeto:
 
 👾 **Estrutura geral do código (classes e/ou funções):**
+As principais classes se dividem em:
+  - Game
+  - Camadas
+  - Sprite
 
 👾 **Estrutura dos buffers e shaders:**
+As especificações de vértices encontram-se na classe Sprite e os envios de shaders encontram-se na classe Camadas. O shader é setado ao adicionarmos o objeto (nesse caso utilizamos diversos sprites - jpg, png).
 
 👾 **Gerenciamento dos sprites:**
+O gerenciamento dos sprites é realizado na classe Game. São retirados e adicionados os objetos conforme a necessidade. Quando o personagem pula, caminha ou até mesmo sua posição inicial.
 
 👾 **Como é feito o controle do personagem (teclado e/ou mouse):**
 
@@ -39,8 +45,5 @@ Tecla W: O personagem pula; <br>
 Tecla A: O personagem anda para trás; <br>
 Tecla D: O personagem anda para frente.
 
-👾 **Como são verificadas as colisões:**
-
 👾 **Como é gerenciada a animação dos sprites:**
-
-👾 **Como são gerenciadas as camadas para o efeito de Parallax:**
+Criamos uma lista com os sprites do persogem e da bomba e setamos uma flag para cada ação do personagem. Quando determinada ação é atribuida ao estado do personagem, o sprite coerente a está ação é selecionado.
