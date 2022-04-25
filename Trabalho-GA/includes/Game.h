@@ -14,13 +14,9 @@ using namespace std;
 class Game
 {
 public:
-	
 	void start();
 
-	unsigned int loadTexture(string filename);
-
 private:
-
 	void initialize();
 	void initializeScene();
 	void renderSprites();
@@ -28,16 +24,12 @@ private:
 	static void key_callback(GLFWwindow* window, int key, int scancode, int action, int mode);
 	void setupCamera2D();
 	void updateSprites();
+	unsigned int loadTexture(string filename);
 
-	float movimento;
 	Layer* layers = new Layer[3];
-	
+
 	GLFWwindow *window;
 	Shader *shader;
-
 	glm::mat4 projection;
-	
-	vector <Sprite*> objects;
-
 };
 

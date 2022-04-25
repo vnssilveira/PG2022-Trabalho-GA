@@ -10,7 +10,7 @@ void Sprite::initialize()
 	unsigned int VBO, EBO;
 
 	float vertices[] = {
-		// positions          // colors           // texture coords
+		// posições          // cores           // textura
 		0.5f,  0.5f, 0.0f,   1.0f, 0.0f, 0.0f,   1.0f, 1.0, 
 		0.5f, -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,   1.0f, 0.0f, 
 		-0.5f, -0.5f, 0.0f,   0.0f, 0.0f, 1.0f,   0.0f, 0.0f, 
@@ -133,9 +133,13 @@ void Sprite::setPosZInicial(float z)
 
 void Sprite::draw()
 {
+	//Ativando o primeiro buffer de textura (0) e conectando ao identificador gerado
 	glBindTexture(GL_TEXTURE_2D, texID);
 	glUniform1i(glGetUniformLocation(shader->ID, "tex_buffer"), 0);
 
+	// Chamada de desenho - drawcall
+	// Poligono Preenchido - GL_TRIANGLES
+	// Observe que como  usamos EBO, agora usamos a glDrawElements!
 	glBindVertexArray(VAO);
 	glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 	glBindVertexArray(0);

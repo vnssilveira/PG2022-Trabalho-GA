@@ -15,7 +15,7 @@ class Layer
 public:
 
 	void update();
-	void adicionarObjeto(float posX, float posY, float posZ, float dimX, float dimY, float dimZ, Shader* shader);
+	void addObject(float posX, float posY, float posZ, float dimX, float dimY, float dimZ, Shader* shader);
 	void setDesloc(float deslocamento);
 	float getDesloc();
 
